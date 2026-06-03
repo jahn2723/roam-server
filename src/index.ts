@@ -76,6 +76,13 @@ app.get("/health", (_req, res) => res.json({ ok: true, rooms: rooms.size }))
 
 // ── WebSocket ──────────────────────────────────────────────────────────────
 
+// Keep WebSocket connections alive on Render (drops idle sockets after ~60s)
+setInterval(() => {
+  wss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) client.ping()
+  })
+}, 25_000)
+
 wss.on("connection", (ws: WebSocket, req: IncomingMessage) => {
   const url = new URL(req.url ?? "/", "http://localhost")
   const roomId = url.searchParams.get("room") ?? ""
